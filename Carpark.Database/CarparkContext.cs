@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Carpark.Database;
 
-public class CarparkContext : DbContext
+internal class CarparkContext : DbContext
 {
     public DbSet<Car> Cars { get; set; }
     
