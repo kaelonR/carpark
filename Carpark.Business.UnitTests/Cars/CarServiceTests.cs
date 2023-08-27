@@ -185,4 +185,16 @@ public class CarServiceTests
         //Assert
         Assert.That(car.LentTo, Is.EqualTo("Jordy de Koning"));
     }
+    
+    [TestCase]
+    public async Task GetCar_Throws_When_No_Car_Found()
+    {
+        //arrange
+        var integrationMock = CreateIntegrationMock(true);
+        var carRepositoryMock = CreateRepositoryMock();
+        var carService = new CarService(carRepositoryMock.Object, integrationMock.Object);
+        
+        //Act+Assert
+        Assert.ThrowsAsync<CarNotFoundException>(() => carService.GetCar("test plate"));
+    }
 }

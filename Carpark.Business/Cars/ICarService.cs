@@ -4,7 +4,21 @@ namespace Carpark.Business.Cars;
 
 public interface ICarService
 {
+    /// <summary>
+    /// Get a list of cars
+    /// </summary>
+    /// <param name="lentTo">optional filter on who the car is lent out to</param>
+    /// <param name="status">optional filter on the car's status</param>
+    /// <returns>A list of cars that match the given query</returns>
     Task<IEnumerable<Car>> GetCars(string? lentTo = null, CarStatus? status = null);
+
+    /// <summary>
+    /// Get a car by license plate
+    /// </summary>
+    /// <param name="licensePlate">License plate of the car</param>
+    /// <returns>The car</returns>
+    /// <exception cref="Exceptions.Cars.CarNotFoundException">Thrown if the car could not be found</exception>
+    Task<Car> GetCar(string licensePlate);
     
     /// <summary>
     /// Create a new car.

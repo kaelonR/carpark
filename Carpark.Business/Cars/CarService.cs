@@ -26,7 +26,17 @@ internal class CarService : ICarService
 
         return await _carRepository.GetCars(filters);
     }
-    
+
+    public async Task<Car> GetCar(string licensePlate)
+    {
+        var formattedLicensePlate = FormatLicensePlate(licensePlate);
+        var car = await _carRepository.GetCar(formattedLicensePlate);
+        if (car == null)
+            throw new CarNotFoundException();
+
+        return car;
+    }
+
     public async Task<Car> CreateCar(string licensePlate, string colour, int constructionYear, CarStatus status, string? comments = null)
     {
         var formattedLicensePlate = FormatLicensePlate(licensePlate);

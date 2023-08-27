@@ -72,6 +72,30 @@ public class CarsController : ControllerBase
     }
 
     /// <summary>
+    /// Get a car by its license plate.
+    /// </summary>
+    /// <param name="licensePlate"></param>
+    /// <response code="200">The car</response>
+    /// <response code="404">Car not found</response>
+    /// <response code="424">Something went wrong with the underlying database</response>
+    [HttpGet]
+    [Route("{licensePlate}")]
+    [ProducesResponseType(typeof(CarResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCar(string licensePlate)
+    {
+        try
+        {
+            var car = await _carService.GetCar(licensePlate);
+            var response = CarResponseFactory.Construct(car);
+            return new JsonResult(response);
+        }
+        catch (CarNotFoundException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
+        }
+    }
+
+    /// <summary>
     /// Update a car's status.
     /// </summary>
     /// <response code="204">Status updated successfully</response>
@@ -79,12 +103,12 @@ public class CarsController : ControllerBase
     /// <response code="422">Status is not a valid value</response>
     /// <response code="424">Something went wrong with the underlying database</response>
     [HttpPut]
-    [Route("{id}/status")]
-    public async Task<IActionResult> UpdateStatus(string id, [FromBody] UpdateStatusPayload payload)
+    [Route("{licensePlate}/status")]
+    public async Task<IActionResult> UpdateStatus(string licensePlate, [FromBody] UpdateStatusPayload payload)
     {
         try
         {
-            await _carService.UpdateStatus(id, (CarStatus) payload.Status);
+            await _carService.UpdateStatus(licensePlate, (CarStatus) payload.Status);
             return new NoContentResult();
         }
         catch (CarStatusUpdateException e)
@@ -109,12 +133,12 @@ public class CarsController : ControllerBase
     /// <response code="422">Name is not supplied</response>
     /// <response code="424">Something went wrong with the underlying database</response>
     [HttpPut]
-    [Route("{id}/lent-to")]
-    public async Task<IActionResult> UpdateLentTo(string id, [FromBody] LendCarPayload payload)
+    [Route("{licensePlate}/lent-to")]
+    public async Task<IActionResult> UpdateLentTo(string licensePlate, [FromBody] LendCarPayload payload)
     {
         try
         {
-            await _carService.LendCarTo(id, payload.PersonName);
+            await _carService.LendCarTo(licensePlate, payload.PersonName);
             return new NoContentResult();
         }
         catch (CarStatusUpdateException e)
