@@ -2,6 +2,7 @@
 using Carpark.Api.Factories;
 using Carpark.Business.Cars;
 using Carpark.Business.Exceptions;
+using Carpark.Business.Exceptions.Cars;
 using Carpark.Domain;
 using Microsoft.AspNetCore.Mvc;
 
@@ -63,6 +64,66 @@ public class CarsController : ControllerBase
         catch (Exception e) when (e is InvalidLicensePlateException or CreateCarInvalidStatusException)
         {
             return Problem(e.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
+        }
+        catch (InfrastructureException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status424FailedDependency);
+        }
+    }
+
+    /// <summary>
+    /// Update a car's status.
+    /// </summary>
+    /// <response code="204">Status updated successfully</response>
+    /// <response code="404">Car not found</response>
+    /// <response code="422">Status is not a valid value</response>
+    /// <response code="424">Something went wrong with the underlying database</response>
+    [HttpPut]
+    [Route("{id}/status")]
+    public async Task<IActionResult> UpdateStatus(string id, [FromBody] UpdateStatusPayload payload)
+    {
+        try
+        {
+            await _carService.UpdateStatus(id, (CarStatus) payload.Status);
+            return new NoContentResult();
+        }
+        catch (CarStatusUpdateException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (CarNotFoundException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
+        }
+        catch (InfrastructureException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status424FailedDependency);
+        }
+    }
+    
+    /// <summary>
+    /// Lend a car to a person.
+    /// </summary>
+    /// <response code="204">Status and person that the car is lent to were updated successfully.</response>
+    /// <response code="404">Car not found.</response>
+    /// <response code="422">Name is not supplied</response>
+    /// <response code="424">Something went wrong with the underlying database</response>
+    [HttpPut]
+    [Route("{id}/lent-to")]
+    public async Task<IActionResult> UpdateLentTo(string id, [FromBody] LendCarPayload payload)
+    {
+        try
+        {
+            await _carService.LendCarTo(id, payload.PersonName);
+            return new NoContentResult();
+        }
+        catch (CarStatusUpdateException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status409Conflict);
+        }
+        catch (CarNotFoundException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status404NotFound);
         }
         catch (InfrastructureException e)
         {

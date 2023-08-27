@@ -1,4 +1,4 @@
-﻿namespace Carpark.Business.Exceptions;
+﻿namespace Carpark.Business.Exceptions.Cars;
 
 public class CreateCarInvalidStatusException : CarparkBusinessException
 {

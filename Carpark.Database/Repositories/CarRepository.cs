@@ -47,7 +47,8 @@ internal class CarRepository : ICarRepository
 
         if (_carparkContext.Cars.Any(x => x.LicensePlate == dbCar.LicensePlate))
         {
-            _carparkContext.Cars.Attach(dbCar);
+            _carparkContext.ChangeTracker.Clear();
+            _carparkContext.Attach(dbCar);
             _carparkContext.Entry(dbCar).State = EntityState.Modified;
         }
         else

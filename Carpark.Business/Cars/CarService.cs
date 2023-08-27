@@ -1,4 +1,4 @@
-﻿using Carpark.Business.Exceptions;
+﻿using Carpark.Business.Exceptions.Cars;
 using Carpark.Business.Integrations;
 using Carpark.Database.Repositories;
 using Carpark.Domain;
@@ -29,7 +29,7 @@ internal class CarService : ICarService
     
     public async Task<Car> CreateCar(string licensePlate, string colour, int constructionYear, CarStatus status, string? comments = null)
     {
-        var formattedLicensePlate = licensePlate.Replace("-", string.Empty).ToUpper();
+        var formattedLicensePlate = FormatLicensePlate(licensePlate);
         var licensePlateExists = await _openDataRdwIntegration.LicensePlateExists(formattedLicensePlate);
         if (!licensePlateExists)
             throw new InvalidLicensePlateException(licensePlate);
@@ -45,4 +45,42 @@ internal class CarService : ICarService
         await _carRepository.SaveCar(car);
         return car;
     }
+
+    public async Task UpdateStatus(string licensePlate, CarStatus status)
+    {
+        if (status == CarStatus.LentOut)
+            throw new CarStatusUpdateException("Car status cannot be set to LentOut status; " +
+                "use the appropriate endpoint to ensure the person the car is lent out to is set correctly.");
+        if (status == CarStatus.OnOrder)
+            throw new CarStatusUpdateException("Car status cannot be set to OnOrder.");
+        
+        var formattedLicensePlate = FormatLicensePlate(licensePlate);
+        var car = await _carRepository.GetCar(formattedLicensePlate);
+        
+        if (car == null)
+            throw new CarNotFoundException();
+        if (car.Status == CarStatus.Sold)
+            throw new CarStatusUpdateException("Car status cannot be updated; car is already sold.");
+
+        car.Status = status;
+        car.LentTo = null;
+        await _carRepository.SaveCar(car);
+    }
+
+    public async Task LendCarTo(string licensePlate, string personName)
+    {
+        var formattedLicensePlate = FormatLicensePlate(licensePlate);
+        var car = await _carRepository.GetCar(formattedLicensePlate);
+        if (car == null)
+            throw new CarNotFoundException();
+        if (car.Status != CarStatus.Available)
+            throw new CarStatusUpdateException("Car cannot be lent out; car is not available.");
+
+        car.Status = CarStatus.LentOut;
+        car.LentTo = personName;
+        await _carRepository.SaveCar(car);
+    }
+
+    private string FormatLicensePlate(string licensePlate)
+        => licensePlate.Replace("-", string.Empty).ToUpper();
 }
