@@ -7,7 +7,7 @@ public interface ICarRepository
 {
     Task<Domain.Car?> GetCar(string licensePlate);
     
-    Task<Domain.Car[]> GetCars(GetCarsFilters? filters = null);
+    Task<(Domain.Car[] cars, int totalCarCount)> GetCars(int page, int itemsPerPage, GetCarsFilters? filters = null);
 
     /// <summary>
     /// Save a car to the database

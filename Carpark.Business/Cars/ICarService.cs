@@ -7,10 +7,12 @@ public interface ICarService
     /// <summary>
     /// Get a list of cars
     /// </summary>
+    /// <param name="page">Which page to retrieve</param>
+    /// <param name="itemsPerPage">How many items to retrieve per page</param>
     /// <param name="lentTo">optional filter on who the car is lent out to</param>
     /// <param name="status">optional filter on the car's status</param>
     /// <returns>A list of cars that match the given query</returns>
-    Task<IEnumerable<Car>> GetCars(string? lentTo = null, CarStatus? status = null);
+    Task<(IEnumerable<Car> cars, int totalCarCount)> GetCars(int page = 1, int itemsPerPage = 25, string? lentTo = null, CarStatus? status = null);
 
     /// <summary>
     /// Get a car by license plate
@@ -31,7 +33,7 @@ public interface ICarService
     /// <exception cref="Exceptions.Cars.InvalidLicensePlateException">Thrown if the license plate could not be verified</exception>
     /// <exception cref="Exceptions.Cars.CreateCarInvalidStatusException">Thrown if the status is not OnOrder or Available</exception>
     /// <exception cref="Exceptions.InfrastructureException">Thrown if something went wrong in the underlying infrastructure</exception>
-    Task<Car> CreateCar(string licensePlate, string colour, int constructionYear, CarStatus status, string comments = null);
+    Task<Car> CreateCar(string licensePlate, string colour, int constructionYear, CarStatus status, string? comments = null);
 
     /// <summary>
     /// Update a car's status.

@@ -1,5 +1,6 @@
 ﻿using Carpark.Business.Cars;
 using Carpark.Business.Exceptions.Cars;
+using Carpark.Business.Exceptions.Pagination;
 using Carpark.Business.Integrations;
 using Carpark.Database.Repositories;
 using Moq;
@@ -196,5 +197,41 @@ public class CarServiceTests
         
         //Act+Assert
         Assert.ThrowsAsync<CarNotFoundException>(() => carService.GetCar("test plate"));
+    }
+    
+    [TestCase]
+    public async Task GetCars_Throws_When_Page_Is_0()
+    {
+        //arrange
+        var integrationMock = CreateIntegrationMock(true);
+        var carRepositoryMock = CreateRepositoryMock();
+        var carService = new CarService(carRepositoryMock.Object, integrationMock.Object);
+        
+        //Act+Assert
+        Assert.ThrowsAsync<IndexOutOfRangeException>(() => carService.GetCars(0));
+    }
+    
+    [TestCase]
+    public async Task GetCars_Throws_When_ItemsPerPage_Is_0()
+    {
+        //arrange
+        var integrationMock = CreateIntegrationMock(true);
+        var carRepositoryMock = CreateRepositoryMock();
+        var carService = new CarService(carRepositoryMock.Object, integrationMock.Object);
+        
+        //Act+Assert
+        Assert.ThrowsAsync<ItemsPerPageOutOfBoundsException>(() => carService.GetCars(1, 0));
+    }
+    
+    [TestCase]
+    public async Task GetCars_Throws_When_ItemsPerPage_Is_More_Than_50()
+    {
+        //arrange
+        var integrationMock = CreateIntegrationMock(true);
+        var carRepositoryMock = CreateRepositoryMock();
+        var carService = new CarService(carRepositoryMock.Object, integrationMock.Object);
+        
+        //Act+Assert
+        Assert.ThrowsAsync<ItemsPerPageOutOfBoundsException>(() => carService.GetCars(1, 100));
     }
 }

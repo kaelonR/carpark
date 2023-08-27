@@ -1,5 +1,8 @@
-﻿using Carpark.Business.Exceptions.Cars;
+﻿using Carpark.Business.Exceptions;
+using Carpark.Business.Exceptions.Cars;
+using Carpark.Business.Exceptions.Pagination;
 using Carpark.Business.Integrations;
+using Carpark.Database.Exceptions;
 using Carpark.Database.Repositories;
 using Carpark.Domain;
 
@@ -16,15 +19,20 @@ internal class CarService : ICarService
         _openDataRdwIntegration = openDataRdwIntegration;
     }
 
-    public async Task<IEnumerable<Car>> GetCars(string? lentTo = null, CarStatus? status = null)
+    public async Task<(IEnumerable<Car> cars, int totalCarCount)> GetCars(int page = 1, int itemsPerPage = 25, string? lentTo = null, CarStatus? status = null)
     {
+        if (page <= 0)
+            throw new IndexOutOfRangeException("page must be 1 or higher.");
+        if (itemsPerPage < 1 || itemsPerPage > 50)
+            throw new ItemsPerPageOutOfBoundsException("itemsPerPage must be between 1 and 50.");
+        
         var filters = new Database.Repositories.Filters.GetCarsFilters();
         if (status != null)
             filters.Status = status;
         if (lentTo != null)
             filters.LentTo = lentTo;
 
-        return await _carRepository.GetCars(filters);
+        return await _carRepository.GetCars(page, itemsPerPage, filters);
     }
 
     public async Task<Car> GetCar(string licensePlate)
@@ -51,9 +59,16 @@ internal class CarService : ICarService
         {
             Comments = comments ?? string.Empty
         };
-        
-        await _carRepository.SaveCar(car);
-        return car;
+
+        try
+        {
+            await _carRepository.SaveCar(car);
+            return car;
+        }
+        catch (DatabaseUpdateException e)
+        {
+            throw new InfrastructureException(e);
+        }
     }
 
     public async Task UpdateStatus(string licensePlate, CarStatus status)
@@ -74,7 +89,15 @@ internal class CarService : ICarService
 
         car.Status = status;
         car.LentTo = null;
-        await _carRepository.SaveCar(car);
+
+        try
+        {
+            await _carRepository.SaveCar(car);
+        }
+        catch (DatabaseUpdateException e)
+        {
+            throw new InfrastructureException(e);
+        }
     }
 
     public async Task LendCarTo(string licensePlate, string personName)
@@ -88,7 +111,15 @@ internal class CarService : ICarService
 
         car.Status = CarStatus.LentOut;
         car.LentTo = personName;
-        await _carRepository.SaveCar(car);
+
+        try
+        {
+            await _carRepository.SaveCar(car);
+        }
+        catch (DatabaseUpdateException e)
+        {
+            throw new InfrastructureException(e);
+        }
     }
 
     private string FormatLicensePlate(string licensePlate)

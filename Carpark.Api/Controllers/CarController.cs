@@ -3,6 +3,7 @@ using Carpark.Api.Factories;
 using Carpark.Business.Cars;
 using Carpark.Business.Exceptions;
 using Carpark.Business.Exceptions.Cars;
+using Carpark.Business.Exceptions.Pagination;
 using Carpark.Domain;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,17 +25,35 @@ public class CarsController : ControllerBase
     /// </summary>
     /// <param name="lentTo">optional parameter to search for cars lent out to a specific person</param>
     /// <param name="status">optional parameter to search for cars with a specific status</param>
+    /// <param name="page">optional parameter to specify the page number to retrieve. defaults to 1.</param>
+    /// <param name="itemsPerPage">optional parameter to specify how many items to put on one page. Defaults to 25. Must be between 1 and 50.
     /// <response code="200">A list of cars</response>
-    /// <response code="422">Request could not be processed; a status filter with an invalid value was supplied.</response>
+    /// <response code="422">Request could not be processed; a status filter with an invalid value was supplied, page was 0 or lower, or itemsPerPage was not between 1 and 50.</response>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<CarResponse>), StatusCodes.Status200OK, "application/json")]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> GetCars([FromQuery(Name = "lent-to")] string? lentTo = null, [FromQuery] CarStatus? status = null)
+    public async Task<IActionResult> GetCars(
+        [FromQuery(Name = "lent-to")] string? lentTo = null,
+        [FromQuery] CarStatus? status = null,
+        [FromQuery] int page = 1,
+        [FromQuery(Name = "items-per-page")] int itemsPerPage = 25)
     {
-        var cars = await _carService.GetCars(lentTo, status);
-        var response = cars.Select(CarResponseFactory.Construct);
-        
-        return new JsonResult(response);
+        try
+        {
+            var (cars, totalCarCount) = await _carService.GetCars(page, itemsPerPage, lentTo, status);
+            var response = new PaginatedCarsResponse
+            {
+                Page = page,
+                ItemsPerPage = itemsPerPage,
+                AmountOfPages = (int) Math.Ceiling(Convert.ToDouble(totalCarCount) / itemsPerPage),
+                Cars = cars.Select(CarResponseFactory.Construct)
+            };
+            return new JsonResult(response);
+        }
+        catch (Exception e) when (e is IndexOutOfRangeException or ItemsPerPageOutOfBoundsException)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
+        }
     }
 
     /// <summary>

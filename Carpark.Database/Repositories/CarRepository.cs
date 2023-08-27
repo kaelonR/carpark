@@ -23,7 +23,7 @@ internal class CarRepository : ICarRepository
         return CarMapper.ToDomainModel(dbCar);
     }
 
-    public async Task<Domain.Car[]> GetCars(GetCarsFilters? filters = null)
+    public async Task<(Domain.Car[] cars, int totalCarCount)> GetCars(int page, int itemsPerPage, GetCarsFilters? filters = null)
     {
         var query = _carparkContext.Cars.AsQueryable();
         
@@ -32,8 +32,14 @@ internal class CarRepository : ICarRepository
         if (filters?.Status != null)
             query = query.Where(x => x.Status == filters.Status);
 
-        var dbCars = await query.ToArrayAsync();
-        return dbCars.Select(CarMapper.ToDomainModel).ToArray();
+        var totalCarCount = await query.CountAsync();
+        
+        var dbCars = await query
+            .Skip((page-1) * itemsPerPage)
+            .Take(itemsPerPage)
+            .ToArrayAsync();
+        
+        return (dbCars.Select(CarMapper.ToDomainModel).ToArray(), totalCarCount);
     }
 
     /// <summary>
