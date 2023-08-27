@@ -3,9 +3,10 @@ using Carpark.Database.Repositories.Filters;
 
 namespace Carpark.Database.Repositories;
 
-internal interface ICarRepository
+public interface ICarRepository
 {
     Task<Domain.Car?> GetCar(string licensePlate);
+    
     Task<Domain.Car[]> GetCars(GetCarsFilters? filters = null);
 
     /// <summary>

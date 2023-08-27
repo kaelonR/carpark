@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Carpark.Database.Migrations
 {
     [DbContext(typeof(CarparkContext))]
-    [Migration("20230827173837_Initial")]
+    [Migration("20230827184018_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -24,9 +24,6 @@ namespace Carpark.Database.Migrations
                     b.Property<string>("LicensePlate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CarStatus")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Colour")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -39,8 +36,10 @@ namespace Carpark.Database.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LentTo")
-                        .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("LicensePlate");
 

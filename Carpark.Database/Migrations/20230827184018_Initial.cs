@@ -17,8 +17,8 @@ namespace Carpark.Database.Migrations
                     LicensePlate = table.Column<string>(type: "TEXT", nullable: false),
                     Colour = table.Column<string>(type: "TEXT", nullable: false),
                     ConstructionYear = table.Column<int>(type: "INTEGER", nullable: false),
-                    CarStatus = table.Column<int>(type: "INTEGER", nullable: false),
-                    LentTo = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<int>(type: "INTEGER", nullable: false),
+                    LentTo = table.Column<string>(type: "TEXT", nullable: true),
                     Comments = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>

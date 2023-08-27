@@ -21,9 +21,6 @@ namespace Carpark.Database.Migrations
                     b.Property<string>("LicensePlate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("CarStatus")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Colour")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -36,8 +33,10 @@ namespace Carpark.Database.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("LentTo")
-                        .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("LicensePlate");
 
