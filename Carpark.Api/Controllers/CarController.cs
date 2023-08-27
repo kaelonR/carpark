@@ -39,18 +39,26 @@ public class CarsController : ControllerBase
     /// <summary>
     /// Add a new car
     /// </summary>
-    /// <param name="payload"></param>
-    /// <returns></returns>
+    /// <response code="201">Car created successfully</response>
+    /// <response code="422">The license plate supplied is invalid, or an invalid status was supplied in the request body</response>
+    /// <response code="424">An error occured while attempting to update the underlying database.</response>
     [HttpPost]
+    [ProducesResponseType(typeof(CarResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status424FailedDependency)]
     public async Task<IActionResult> CreateCar([FromBody] CreateCarPayload payload)
     {
         try
         {
-            var carStatus = (CarStatus) payload.Status;
-            var car = await _carService.CreateCar(payload.LicensePlate, payload.Colour, payload.ConstructionYear,
-                carStatus, payload.Comments);
-
-            return new JsonResult(car) {StatusCode = StatusCodes.Status201Created};
+            var car = await _carService.CreateCar(
+                payload.LicensePlate,
+                payload.Colour,
+                payload.ConstructionYear,
+                (CarStatus) payload.Status,
+                payload.Comments);
+            
+            var carResponse = CarResponseFactory.Construct(car);
+            return new JsonResult(carResponse) {StatusCode = StatusCodes.Status201Created};
         }
         catch (Exception e) when (e is InvalidLicensePlateException or CreateCarInvalidStatusException)
         {
