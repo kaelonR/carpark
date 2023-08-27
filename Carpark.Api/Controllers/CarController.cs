@@ -1,6 +1,7 @@
 ﻿using Carpark.Api.Contracts.Cars;
 using Carpark.Api.Factories;
 using Carpark.Business.Cars;
+using Carpark.Business.Exceptions;
 using Carpark.Domain;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,8 +21,8 @@ public class CarsController : ControllerBase
     /// <summary>
     /// Get a list of cars
     /// </summary>
-    /// <param name="lentTo">optional parameter to searh for cars lent out to a specific person</param>
-    /// <param name="status">optional parameter to searh for cars with a specific status</param>
+    /// <param name="lentTo">optional parameter to search for cars lent out to a specific person</param>
+    /// <param name="status">optional parameter to search for cars with a specific status</param>
     /// <response code="200">A list of cars</response>
     /// <response code="422">Request could not be processed; a status filter with an invalid value was supplied.</response>
     [HttpGet]
@@ -33,5 +34,31 @@ public class CarsController : ControllerBase
         var response = cars.Select(CarResponseFactory.Construct);
         
         return new JsonResult(response);
+    }
+
+    /// <summary>
+    /// Add a new car
+    /// </summary>
+    /// <param name="payload"></param>
+    /// <returns></returns>
+    [HttpPost]
+    public async Task<IActionResult> CreateCar([FromBody] CreateCarPayload payload)
+    {
+        try
+        {
+            var carStatus = (CarStatus) payload.Status;
+            var car = await _carService.CreateCar(payload.LicensePlate, payload.Colour, payload.ConstructionYear,
+                carStatus, payload.Comments);
+
+            return new JsonResult(car) {StatusCode = StatusCodes.Status201Created};
+        }
+        catch (Exception e) when (e is InvalidLicensePlateException or CreateCarInvalidStatusException)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status422UnprocessableEntity);
+        }
+        catch (InfrastructureException e)
+        {
+            return Problem(e.Message, statusCode: StatusCodes.Status424FailedDependency);
+        }
     }
 }
