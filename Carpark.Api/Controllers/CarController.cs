@@ -26,7 +26,7 @@ public class CarsController : ControllerBase
     /// <param name="lentTo">optional parameter to search for cars lent out to a specific person</param>
     /// <param name="status">optional parameter to search for cars with a specific status</param>
     /// <param name="page">optional parameter to specify the page number to retrieve. defaults to 1.</param>
-    /// <param name="itemsPerPage">optional parameter to specify how many items to put on one page. Defaults to 25. Must be between 1 and 50.
+    /// <param name="itemsPerPage">optional parameter to specify how many items to put on one page. Defaults to 25. Must be between 1 and 50.</param>
     /// <response code="200">A list of cars</response>
     /// <response code="422">Request could not be processed; a status filter with an invalid value was supplied, page was 0 or lower, or itemsPerPage was not between 1 and 50.</response>
     [HttpGet]
@@ -45,6 +45,7 @@ public class CarsController : ControllerBase
             {
                 Page = page,
                 ItemsPerPage = itemsPerPage,
+                TotalItems = totalCarCount,
                 AmountOfPages = (int) Math.Ceiling(Convert.ToDouble(totalCarCount) / itemsPerPage),
                 Cars = cars.Select(CarResponseFactory.Construct)
             };
