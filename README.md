@@ -5,7 +5,7 @@ Dit project is gebouwd op .NET 7, dus de [.NET 7 SDK](https://dotnet.microsoft.c
 
 Om het project te draaien kun je de repo clonen of downloaden, en vervolgens de solution openen in een IDE naar keuze.
 
-open een terminal, en voer de volgende commando's uit.
+open een terminal in de `Carpark.Database` folder, en voer de volgende commando's uit.
 ```
 dotnet tool update --global dotnet-ef
 dotnet ef database update
